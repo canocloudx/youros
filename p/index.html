@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="apple-itunes-app" content="app-id=6799627366">
+<title>A task for you · YOUR-OS</title>
+<style>
+  :root { --page:#F2F2F7; --card:#fff; --ink:#111; --soft:#6b6b70; --accent:#006E8A; --line:rgba(0,0,0,.08); }
+  @media (prefers-color-scheme: dark) {
+    :root { --page:#000; --card:#1C1C1E; --ink:#f5f5f7; --soft:#9a9aa0; --accent:#59D8F4; --line:rgba(255,255,255,.12); }
+  }
+  * { box-sizing:border-box; }
+  html,body { margin:0; background:var(--page); color:var(--ink);
+    font:17px/1.4 -apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial,sans-serif; }
+  main { max-width:420px; margin:0 auto; padding:max(32px,env(safe-area-inset-top)) 16px 40px; }
+  .brand { font-weight:700; letter-spacing:.02em; font-size:15px; color:var(--soft); text-align:center; margin:8px 0 24px; }
+  .card { background:var(--card); border-radius:24px; padding:28px 20px; text-align:center; border:1px solid var(--line); }
+  .from { color:var(--soft); font-size:15px; font-weight:500; margin:0 0 8px; }
+  h1 { font-size:28px; line-height:1.15; font-weight:600; margin:0 0 8px; overflow-wrap:anywhere; }
+  .due { color:var(--soft); font-size:13px; margin:0; font-variant-numeric:tabular-nums; }
+  .keys { display:grid; gap:12px; margin-top:24px; }
+  a.key { display:block; min-height:50px; line-height:50px; border-radius:25px; text-decoration:none; font-weight:600; }
+  a.primary { background:var(--accent); color:#fff; }
+  @media (prefers-color-scheme: dark) { a.primary { color:#00151b; } }
+  a.secondary { background:rgba(127,127,127,.16); color:var(--ink); }
+  ol { color:var(--soft); font-size:15px; padding-left:20px; margin:24px 4px 0; }
+  ol li { margin:6px 0; }
+  footer { text-align:center; color:var(--soft); font-size:13px; margin-top:28px; }
+  footer a { color:inherit; }
+  [hidden] { display:none !important; }
+</style>
+</head>
+<body>
+<main>
+  <p class="brand">YOUR-OS</p>
+
+  <section class="card" id="page" hidden>
+    <p class="from" id="from"></p>
+    <h1 id="title"></h1>
+    <p class="due" id="due" hidden></p>
+    <div class="keys">
+      <a class="key primary" id="open" href="#">Open in YOUR-OS</a>
+      <a class="key secondary" href="https://apps.apple.com/app/id6799627366">Get YOUR-OS on the App Store</a>
+    </div>
+  </section>
+
+  <section class="card" id="none" hidden>
+    <h1>This link is not a page.</h1>
+    <p class="from">Ask for it to be sent again.</p>
+    <div class="keys">
+      <a class="key secondary" href="https://apps.apple.com/app/id6799627366">Get YOUR-OS on the App Store</a>
+    </div>
+  </section>
+
+  <ol id="steps" hidden>
+    <li>New to YOUR-OS? Get it on the App Store first.</li>
+    <li>Come back to this message and open the link again.</li>
+    <li>Accept the task: it lands on your board, and says who it came from.</li>
+  </ol>
+
+  <footer>The task travels inside this link. Nothing about it is stored on this site. · <a href="../privacy.html">Privacy</a></footer>
+</main>
+<script>
+(function () {
+  "use strict";
+  var token = location.hash.replace(/^#/, "");
+  function show(id) { document.getElementById(id).hidden = false; }
+  function decode(t) {
+    var b64 = t.replace(/-/g, "+").replace(/_/g, "/");
+    while (b64.length % 4) b64 += "=";
+    var bin = atob(b64), bytes = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return JSON.parse(new TextDecoder("utf-8").decode(bytes));
+  }
+  var p = null;
+  try { if (token && token.length < 4096) p = decode(token); } catch (e) { p = null; }
+  if (!p || p.v !== 1 || typeof p.t !== "string" || !p.t.trim()) { show("none"); return; }
+
+  var who = (typeof p.n === "string" && p.n.trim()) ? p.n.trim().slice(0, 48) : "Someone";
+  var title = p.t.trim().slice(0, 240);
+  // textContent only: a link is someone else's text and is never treated as markup
+  var from = document.getElementById("from");
+  if (p.k === "ack") {
+    from.textContent = who + (p.a === "declined" ? " declined your page" : " accepted your page");
+  } else {
+    from.textContent = who + " paged you a task";
+  }
+  document.getElementById("title").textContent = title;
+  if (typeof p.d === "string" && /^\d{4}-\d{2}-\d{2}$/.test(p.d)) {
+    var d = new Date(p.d + "T12:00:00");
+    if (!isNaN(d)) {
+      var due = document.getElementById("due");
+      due.textContent = "Due " + d.toLocaleDateString("en-GB", { day: "2-digit", month: "short" });
+      due.hidden = false;
+    }
+  }
+  document.title = (p.k === "ack" ? "An answer for you" : "A task for you") + " · YOUR-OS";
+  document.getElementById("open").href = "youros://p/" + encodeURIComponent(token);
+  show("page");
+  show("steps");
+})();
+</script>
+</body>
+</html>
